@@ -27,6 +27,12 @@ import {
   WebcamIcon as ChatIcon,
 } from "lucide-react";
 import MainLayout from "@/components/custom/layout/main-layout";
+import TotalPaymentsView from "@/views/clientDetails/total-payments-view";
+import NewPaymenstView from "@/views/clientDetails/new-payments-view";
+import InvoiceHistoryView from "@/views/clientDetails/invoice-history-view";
+import ServicePriceHistoryView from "@/views/clientDetails/service-price-history-view";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 // Mock data based on the schema
 const customerData = {
@@ -37,6 +43,7 @@ const customerData = {
   profile_pic: "/placeholder.svg?height=200&width=200",
   clinic_id: "clinic123",
   initial_channel: "instagram",
+  total_debt: 2500.0,
   channels: {
     instagram: {
       username: "maria.rodriguez",
@@ -155,36 +162,94 @@ const customerData = {
     treatments: [
       {
         name: "Diş Beyazlatma",
-        date: "2023-10-26",
+        date: "2023-10-16T09:00:00Z",
         status: "Planlandı",
+        price: 1000,
       },
       {
         name: "Implant",
         date: "2023-11-23",
         status: "Tamamlandı",
+        price: 1500,
+      },
+      {
+        name: "Implant",
+        date: "2023-11-23",
+        status: "Tamamlandı",
+        price: 1500,
+      },
+      {
+        name: "Implant",
+        date: "2023-11-23",
+        status: "Tamamlandı",
+        price: 1500,
+      },
+      {
+        name: "Implant",
+        date: "2023-11-23",
+        status: "Tamamlandı",
+        price: 1500,
+      },
+      {
+        name: "Implant",
+        date: "2023-11-23",
+        status: "Tamamlandı",
+        price: 1500,
+      },
+      {
+        name: "Implant",
+        date: "2023-11-23",
+        status: "Tamamlandı",
+        price: 1500,
+      },
+      {
+        name: "Implant",
+        date: "2023-11-23",
+        status: "Tamamlandı",
+        price: 1500,
+      },
+      {
+        name: "Implant",
+        date: "2023-11-23",
+        status: "Tamamlandı",
+        price: 1500,
       },
     ],
   },
   // Additional payment info (not in original schema)
   payment_info: {
-    method: "Kredi Kartı",
     payment_history: [
       {
         id: "pay1",
-        amount: 75.0,
-        date: "2023-10-15",
+        amount: 1000.0,
+        date: "2023-10-16",
         description: "Danışma ücreti",
-        status: "Ödendi",
+        method: "creditCard",
       },
       {
         id: "pay2",
         amount: 350.0,
-        date: "2023-10-26",
+        date: "2024-10-16",
         description: "Diş Beyazlatma",
-        status: "Beklemede",
+        method: "cash",
+      },
+      {
+        id: "pay1",
+        amount: 1000.0,
+        date: "2023-10-16",
+        description: "Danışma ücreti",
+        method: "other",
+      },
+      {
+        id: "pay1",
+        amount: 1000.0,
+        date: "2023-10-16",
+        description: "Danışma ücreti",
+        method: "eft",
       },
     ],
   },
+
   // Chat summary (not in original schema)
   chat_summary: {
     main_issue: "Diş Beyazlatma",
@@ -224,7 +289,31 @@ export default function CustomerDetail() {
       minute: "numeric",
     });
   };
+  const [isDebtLoading, setIsDebtLoading] = useState(false);
+  const fetchTotalDebt = async () => {
+    setIsDebtLoading(true);
+    try {
+      //TODO: uncomment 2 lines below for prod
+      // const res = await api.get(`/get-payments/${id}`);
+      // toast.message(`Status: ${res.status}`);
 
+      //simulate api call
+      //TODO: comment 2 lines below for prod
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      toast.message(`Status: ${200}`);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          error.message ||
+          "Bilinmeyen bir hata oluştu.",
+      );
+    } finally {
+      setIsDebtLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchTotalDebt();
+  }, []);
   return (
     <div className="container mx-auto py-6">
       {/* Customer Header */}
@@ -777,265 +866,21 @@ export default function CustomerDetail() {
 
         {/* Payments Tab */}
         <TabsContent value="payments" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Payment Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Ödeme Özeti</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <div>
-                      <h4 className="text-sm text-gray-500">Toplam Ödenen</h4>
-                      <p className="text-2xl font-bold text-green-600">
-                        {customer.payment_info.payment_history
-                          .filter((p) => p.status === "Ödendi")
-                          .reduce((sum, payment) => sum + payment.amount, 0)
-                          .toFixed(2)}{" "}
-                        ₺
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm text-gray-500">
-                        Bekleyen Ödemeler
-                      </h4>
-                      <p className="text-2xl font-bold text-amber-600">
-                        {customer.payment_info.payment_history
-                          .filter((p) => p.status === "Beklemede")
-                          .reduce((sum, payment) => sum + payment.amount, 0)
-                          .toFixed(2)}{" "}
-                        ₺
-                      </p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium mb-2">Ödeme Yöntemi</h4>
-                    <div className="flex items-center p-3 border rounded-lg">
-                      <CreditCard className="h-5 w-5 mr-2 text-gray-500" />
-                      <span>{customer.payment_info.method}</span>
-                    </div>
-                  </div>
-
-                  <Button className="w-full">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Yeni Ödeme Ekle
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Payment History */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Ödeme Geçmişi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {customer.payment_info.payment_history.map((payment) => {
-                    const isOverdue =
-                      payment.status === "Beklemede" &&
-                      new Date(payment.date) < new Date();
-
-                    return (
-                      <div
-                        key={payment.id}
-                        className="flex items-start p-3 border rounded-lg"
-                      >
-                        <div
-                          className={`h-10 w-10 rounded-full ${
-                            payment.status === "Ödendi"
-                              ? "bg-green-100"
-                              : isOverdue
-                                ? "bg-red-100"
-                                : "bg-amber-100"
-                          } flex items-center justify-center mr-4`}
-                        >
-                          <CreditCard
-                            className={`h-5 w-5 ${
-                              payment.status === "Ödendi"
-                                ? "text-green-600"
-                                : isOverdue
-                                  ? "text-red-600"
-                                  : "text-amber-600"
-                            }`}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium">
-                                {payment.description}
-                              </h4>
-                              <p className="text-sm text-gray-500">
-                                {payment.date}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p
-                                className={`font-bold ${
-                                  payment.status === "Ödendi"
-                                    ? "text-green-600"
-                                    : isOverdue
-                                      ? "text-red-600"
-                                      : "text-amber-600"
-                                }`}
-                              >
-                                {payment.amount.toFixed(2)} ₺
-                              </p>
-                              <Badge
-                                variant={
-                                  payment.status === "Ödendi"
-                                    ? "default"
-                                    : "outline"
-                                }
-                                className={
-                                  payment.status === "Ödendi"
-                                    ? "bg-green-100 text-green-800"
-                                    : ""
-                                }
-                              >
-                                {payment.status}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          {isOverdue && (
-                            <div className="mt-2 p-2 bg-red-50 border border-red-100 rounded-md text-sm text-red-600 flex items-center">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4 mr-1"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                />
-                              </svg>
-                              Gecikmiş Ödeme
-                            </div>
-                          )}
-
-                          {payment.status === "Beklemede" && (
-                            <div className="mt-3 flex space-x-2">
-                              <Button
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                Ödendi Olarak İşaretle
-                              </Button>
-                              <Button variant="outline" size="sm">
-                                Düzenle
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Invoice History */}
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-lg">Fatura Geçmişi</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-md border">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Fatura No
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Tarih
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Açıklama
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Tutar
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Durum
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          İşlemler
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {customer.payment_info.payment_history.map(
-                        (payment, index) => (
-                          <tr key={payment.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              INV-{2023 + index}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payment.date}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payment.description}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {payment.amount.toFixed(2)} ₺
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge
-                                variant={
-                                  payment.status === "Ödendi"
-                                    ? "default"
-                                    : "outline"
-                                }
-                                className={
-                                  payment.status === "Ödendi"
-                                    ? "bg-green-100 text-green-800"
-                                    : ""
-                                }
-                              >
-                                {payment.status}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <Button variant="ghost" size="sm">
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ),
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {/* Left column: stack payment summary and new payments vertically */}
+            <div className="flex flex-col gap-6">
+              <TotalPaymentsView
+                customer={customer}
+                isLoading={isDebtLoading}
+              />
+              <NewPaymenstView />
+            </div>
+            {/* Right column: invoice history */}
+            <div>
+              <ServicePriceHistoryView customer={customer} />
+            </div>
           </div>
+          <InvoiceHistoryView customer={customer} />
         </TabsContent>
 
         {/* Chats Tab */}
